@@ -1,0 +1,145 @@
+# SKILLQUEST MASTER IMPLEMENTATION GUIDE (Demo-Critical Edition)
+
+This document is the MASTER SOURCE OF TRUTH for the implementation of the SkillQuest demo. It maps the architectural vision to the created skeletal framework.
+
+**Legend:** $\star$ = Demo-Critical Path (Must be completed for tomorrow's presentation).
+
+---
+
+## 🛠️ SYSTEM ARCHITECTURE SUMMARY
+- **Frontend:** Next.js (App Router) | **Backend:** Flask (Python) | **DB/Auth:** Supabase (Postgres)
+- **Pattern:** Decoupled Full-Stack $\rightarrow$ Controller $\rightarrow$ Service $\rightarrow$ Repository.
+- **Core Mechanic:** Dual-Track Progression (Knowledge Level vs. Capability Level).
+
+---
+
+## 🚀 THE STEP-BY-STEP IMPLEMENTATION CHAIN
+
+`[STEP 1] The Foundation` $\rightarrow$ `[STEP 2] Identity & Soul` $\rightarrow$ `[STEP 3] The Map` $\rightarrow$ `[STEP 4] The Action` $\rightarrow$ `[STEP 5] Demo Polish`
+
+### [STEP 1] The Foundation: Cloud & Connectivity
+**What:** Establishing the communication bridge between UI, AI Logic, and Data.
+**Why now:** No features can be built without a working data pipe.
+**Effort:** 3 hours | **Tools:** Supabase, Flask, Next.js | **Disk Footprint:** Cloud/Minimal.
+**Phase:** Day-1 MVP $\star$
+
+   **[1.1] Supabase Cloud Provisioning**
+      What: Setting up the managed database and auth.
+      Depends on: None.
+      - **[1.1.a]** Project Setup — file(s): Supabase Console, purpose: Create project and get `SUPABASE_URL` and `SUPABASE_KEY`. $\star$
+      - **[1.1.b]** SQL Schema Execution — file(s): `docs/database_schema.md`, purpose: Run DDL scripts to create `profiles`, `skills`, `nodes`, and `quests` tables. $\star$
+
+   **[1.2] Backend Connectivity (Flask $\rightarrow$ Supabase)**
+      What: Enabling the "Intelligence Layer" to talk to the "Data Layer."
+      Depends on: 1.1
+      - **[1.2.a]** Config Integration — file(s): `server/app/utils/config.py`, purpose: Load `.env` variables into the application. $\star$
+      - **[1.2.b]** Base Repository Implementation — file(s): `server/app/repositories/base_repo.py`, purpose: Initialize the Supabase Python client and create a generic query wrapper. $\star$
+
+   **[1.3] Frontend Connectivity (Next.js $\rightarrow$ Flask)**
+      What: Enabling the "Experience Layer" to talk to the "Intelligence Layer."
+      Depends on: 1.2
+      - **[1.3.a]** API Client Finalization — file(s): `client/lib/api.ts`, purpose: Implement the `fetch` logic with headers and error handling. $\star$
+      - **[1.3.b]** CORS Setup — file(s): `server/run.py`, purpose: Finalize `flask-cors` settings to allow Vercel/Localhost requests. $\star$
+
+---
+
+### [STEP 2] Identity & Soul: The Dual-Track Profile
+**What:** Implementing the persistent user state and the "Knowing vs. Doing" logic.
+**Why now:** Every quest and skill unlock requires a user profile to attach to.
+**Effort:** 5 hours | **Tools:** Supabase Auth, Flask, Next.js | **Disk Footprint:** Cloud/Minimal.
+**Phase:** Day-1 MVP $\star$
+
+   **[2.1] Authentication Flow**
+      What: Secure entry for the "Adventurer."
+      Depends on: 1.3
+      - **[2.1.a]** Auth Service Logic — file(s): `server/app/services/auth_service.py`, purpose: Implement JWT verification and session checks. $\star$
+      - **[2.1.b]** Auth Route Implementation — file(s): `server/app/api/auth.py`, purpose: Create `/login` and `/signup` endpoints. $\star$
+      - **[2.1.c]** Login UI — file(s): `client/app/auth/page.tsx`, purpose: Build the RPG-themed login/signup forms. $\star$
+
+   **[2.2] Dual-Track Profile Logic**
+      What: Implementing the "Knowledge" and "Capability" levels.
+      Depends on: 2.1
+      - **[2.2.a]** User Repository — file(s): `server/app/repositories/user_repo.py`, purpose: Implement `get_profile` and `update_xp` queries. $\star$
+      - **[2.2.b]** XP Service — file(s): `server/app/services/xp_service.py`, purpose: Logic to route XP to Knowledge vs. Capability tracks. $\star$
+      - **[2.2.c]** Stats API — file(s): `server/app/api/user.py`, purpose: Endpoint `/user/stats` to return dual-track levels. $\star$
+
+   **[2.3] The Character Sheet UI**
+      What: Visualizing the "Soul" of the user.
+      Depends on: 2.2
+      - **[2.3.a]** Profile Component — file(s): `client/components/ProfileCard.tsx`, purpose: Display XP bars and levels for both tracks. $\star$
+      - **[2.3.b]** Dashboard Layout — file(s): `client/app/dashboard/page.tsx`, purpose: Main hub showing the character sheet and navigation. $\star$
+
+---
+
+### [STEP 3] The Map: Content Hierarchy & Skill Tree
+**What:** Creating the visual and logical "World Map" of learning.
+**Why now:** This is the core "wow factor" for the demo.
+**Effort:** 6 hours | **Tools:** Next.js, Flask, SVG/Canvas | **Disk Footprint:** Cloud/Minimal.
+**Phase:** Day-1 MVP $\star$
+
+   **[3.1] Content Seeding**
+      What: Populating the world with a sample domain.
+      Depends on: 2.2
+      - **[3.1.a]** Seed Script — file(s): `server/scripts/seed.py`, purpose: Insert a sample "AI Engineering" tree (nodes, prerequisites, XP values) into Supabase. $\star$
+
+   **[3.2] Skill Tree API**
+      What: Serving the map to the frontend.
+      Depends on: 3.1
+      - **[3.2.a]** Skill Repository — file(s): `server/app/repositories/skill_repo.py`, purpose: Implement `get_all_nodes` and `get_user_unlocked_skills`. $\star$
+      - **[3.2.b]** Tree Service — file(s): `server/app/services/skill_service.py`, purpose: Logic to assemble the hierarchy and check unlock status. $\star$
+      - **[3.2.c]** Tree API Route — file(s): `server/app/api/skills.py`, purpose: Endpoint `/skills/tree` returning the JSON map. $\star$
+
+   **[3.3] Interactive Tree Visualizer**
+      What: The visual RPG map.
+      Depends on: 3.2
+      - **[3.3.a]** Tree Component — file(s): `client/components/SkillTree.tsx`, purpose: Render nodes as a graph; handle "locked" (grey) vs "unlocked" (gold) states. $\star$
+      - **[3.3.b]** Node Interaction — file(s): `client/components/NodeModal.tsx`, purpose: Modal showing node details and the quest required to unlock it. $\star$
+
+---
+
+### [STEP 4] The Action: The Quest Loop
+**What:** The mechanism that converts effort into progression.
+**Why now:** Proves the system is an "Adaptive Learning" platform, not just a static map.
+**Effort:** 5 hours | **Tools:** Flask, Next.js | **Disk Footprint:** Cloud/Minimal.
+**Phase:** Day-1 MVP $\star$
+
+   **[4.1] Quest Delivery**
+      What: Giving the user a task to perform.
+      Depends on: 3.3
+      - **[4.1.a]** Quest Service — file(s): `server/app/services/quest_service.py`, purpose: Logic to fetch the specific quest associated with a skill node. $\star$
+      - **[4.1.b]** Quest Route — file(s): `server/app/api/quests.py`, purpose: Endpoint `/quests/delivery` to serve quest content. $\star$
+
+   **[4.2] Proof Submission & Validation**
+      What: The "Proof-of-Skill" closing loop.
+      Depends on: 4.1
+      - **[4.2.a]** Submission API — file(s): `server/app/api/quests.py`, purpose: Endpoint `/quests/submit` to receive proof (e.g., GitHub link). $\star$
+      - **[4.2.b]** Validation Logic (Mock) — file(s): `server/app/services/quest_service.py`, purpose: A function that automatically "approves" proof for the demo. $\star$
+
+   **[4.3] Reward & Progression Engine**
+      What: Triggering the "Level Up" moment.
+      Depends on: 4.2
+      - **[4.3.a]** Reward Trigger — file(s): `server/app/services/xp_service.py`, purpose: Call `update_xp` $\rightarrow$ Calculate new level $\rightarrow$ Unlock next node in `skill_repo`. $\star$
+      - **[4.3.b]** Progression UI — file(s): `client/components/LevelUpModal.tsx`, purpose: High-impact animation showing the user leveling up. $\star$
+
+---
+
+### [STEP 5] Demo Polish & Final Integration
+**What:** Ensuring the demo flow is seamless and "bug-free" for the presentation.
+**Why now:** Last-mile stability.
+**Effort:** 3 hours | **Tools:** Vercel, Railway, Browser DevTools | **Disk Footprint:** Minimal.
+**Phase:** Day-1 MVP $\star$
+
+   **[5.1] End-to-End Flow Test**
+      - **[5.1.a]** Happy Path Verification — purpose: Login $\rightarrow$ View Profile $\rightarrow$ Open Tree $\rightarrow$ Take Quest $\rightarrow$ Submit $\rightarrow$ Level Up. $\star$
+   **[5.2] Local Server Optimization**
+      - **[5.2.a]** Performance Check — purpose: Ensure Flask and Next.js start quickly on the demo machine. $\star$
+   **[5.3] Presentation Script**
+      - **[5.3.a]** Demo Sequence — purpose: Document the exact sequence of clicks for the presentation. $\star$
+
+---
+
+## 🏁 FINAL RECAP OF THE DEMO-CRITICAL PATH
+1. **Infra:** Supabase DB $\rightarrow$ Flask Setup $\rightarrow$ Next.js Setup.
+2. **Identity:** Login $\rightarrow$ Dual-Track Profile $\rightarrow$ Character Sheet.
+3. **World:** Seed Content $\rightarrow$ Tree API $\rightarrow$ Visual Skill Tree.
+4. **Loop:** Quest $\rightarrow$ Submit Proof $\rightarrow$ XP Reward $\rightarrow$ Level Up $\rightarrow$ Unlock Node.

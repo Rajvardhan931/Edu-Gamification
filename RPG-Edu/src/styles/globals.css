@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --font-serif: 'Cinzel', serif;
+  --color-brand-gold: #D4AF37;
+  --color-bg-base: #0B1120;
+}
+
+@theme inline {
+  --color-brand-gold: var(--color-brand-gold);
+  --color-bg-base: var(--color-bg-base);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-serif: var(--font-serif);
+}
+
+body {
+  @apply bg-bg-base text-zinc-300 font-sans antialiased;
+}
